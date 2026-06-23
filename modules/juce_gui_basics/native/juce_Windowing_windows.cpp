@@ -3649,6 +3649,7 @@ private:
                 // painting, so log the click ourselves and only defer to DefWindowProc once the
                 // mouse moves with the button held.
                 captionMouseDown = lParam;
+                grabFocus();
                 return 0;
         }
 
@@ -4178,6 +4179,10 @@ private:
             case WM_NCLBUTTONUP:
                 switch (wParam)
                 {
+                    case HTCAPTION:
+                        captionMouseDown.reset();
+                        break;
+
                     case HTCLOSE:
                         if ((styleFlags & windowHasCloseButton) != 0 && ! sendInputAttemptWhenModalMessage())
                         {
