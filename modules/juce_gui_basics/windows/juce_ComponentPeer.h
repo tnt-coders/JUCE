@@ -375,6 +375,23 @@ public:
     /** Tries to give the window keyboard focus. */
     virtual void grabFocus() = 0;
 
+    /** Requests that the window become the foreground window and take keyboard focus.
+
+        This is a best-effort request, not a guarantee. On platforms that distinguish foreground
+        activation from ordinary z-order changes, the window system may refuse to change the
+        foreground window (for example, when another process owns it), in which case the window
+        keeps its current activation. Use this only for deliberate activation points such as
+        application startup.
+
+        The base implementation falls back to toFront (true) followed by grabFocus(); platforms
+        whose normal show/toFront path does not request foreground activation override this to do so.
+    */
+    virtual void requestForegroundKeyboardFocus()
+    {
+        toFront (true);
+        grabFocus();
+    }
+
     /** Called when the window gains keyboard focus. */
     void handleFocusGain();
     /** Called when the window loses keyboard focus. */

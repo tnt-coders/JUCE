@@ -1625,6 +1625,21 @@ public:
         }
     }
 
+    void requestForegroundKeyboardFocus() override
+    {
+        const ScopedValueSetter<bool> scope (shouldIgnoreModalDismiss, true);
+
+        setMinimised (false);
+
+        // setVisible() shows top-level windows with SW_SHOWNA and toFront() never calls
+        // SetForegroundWindow(), so the window can appear without becoming the foreground window
+        // (e.g. at startup). Request foreground activation explicitly here; the call still obeys
+        // Windows' foreground restrictions and can fail, leaving activation unchanged.
+        callFunctionIfNotLocked (&requestForegroundCallback, hwnd);
+
+        grabFocus();
+    }
+
     void toBehind (ComponentPeer* other) override
     {
         const ScopedValueSetter<bool> scope (shouldIgnoreModalDismiss, true);
@@ -2361,6 +2376,13 @@ private:
     static void* toFrontCallback2 (void* h)
     {
         setWindowZOrder ((HWND) h, HWND_TOP);
+        return nullptr;
+    }
+
+    static void* requestForegroundCallback (void* h)
+    {
+        BringWindowToTop ((HWND) h);
+        SetForegroundWindow ((HWND) h);
         return nullptr;
     }
 
