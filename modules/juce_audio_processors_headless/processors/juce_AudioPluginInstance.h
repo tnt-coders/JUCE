@@ -85,6 +85,23 @@ public:
     */
     virtual void getExtensions (ExtensionsVisitor&) const;
 
+    /** Forwards a key-down event to the plugin's own editor view so the plugin can report
+        whether it consumes the key (for example, when one of its text fields has focus).
+
+        This exists to honor the VST3 contract (IPlugView::onKeyDown): keyboard handling is the
+        plug-in view's responsibility, and the host must trust the view's return value rather than
+        guess from platform state. A host that captures global keyboard shortcuts can call this first
+        and only treat the key as a shortcut when the plugin reports it unhandled.
+
+        Parameters mirror IPlugView::onKeyDown: @p character is the unicode code point, @p keyCode
+        is a format virtual key code for non-ASCII keys (0 for ASCII), and @p modifiers is a
+        format-specific modifier mask. The base implementation returns false; only formats whose
+        editor exposes a key-event entry point (currently VST3) override it.
+
+        @returns true if the plugin reports it handled the key, false otherwise.
+    */
+    virtual bool sendKeyDownToPluginView (juce_wchar /*character*/, int /*keyCode*/, int /*modifiers*/)  { return false; }
+
     using HostedParameter = HostedAudioProcessorParameter;
 
     /** Adds a parameter to this instance.

@@ -314,6 +314,20 @@ struct VST3PluginWindow final : public AudioProcessorEditor,
     bool keyStateChanged (bool /*isKeyDown*/) override  { return true; }
     bool keyPressed (const KeyPress& /*key*/) override  { return true; }
 
+    /*  Forwards a key-down to the hosted view via the VST3 keyboard contract, returning true only
+        if the plugin reports it handled the key. A host can call this to let the plugin's focused
+        widget (e.g. a text field) claim a key before the host treats it as a global shortcut.
+    */
+    bool sendKeyDownToView (juce_wchar character, int keyCode, int modifiers)
+    {
+        if (view == nullptr)
+            return false;
+
+        return view->onKeyDown ((Steinberg::char16) character,
+                                (Steinberg::int16) keyCode,
+                                (Steinberg::int16) modifiers) == Steinberg::kResultTrue;
+    }
+
 private:
     void checkBounds (Rectangle<int>& bounds,
                       const Rectangle<int>&,
@@ -630,6 +644,14 @@ public:
             return new VST3PluginWindow (this, view);
 
         return nullptr;
+    }
+
+    bool sendKeyDownToPluginView (juce_wchar character, int keyCode, int modifiers) override
+    {
+        if (auto* window = dynamic_cast<VST3PluginWindow*> (getActiveEditor()))
+            return window->sendKeyDownToView (character, keyCode, modifiers);
+
+        return false;
     }
 };
 
